@@ -8,10 +8,21 @@ const app = express();
 
 app.use(express.json());
 
-app.use("/customer",session({secret:"fingerprint_customer",resave: true, saveUninitialized: true}))
+app.use("/customer",session({secret:"fingerprint_customer",resave: true, saveUninitialized: true}));
 
+// Authentication middleware
 app.use("/customer/auth/*", function auth(req,res,next){
 //Write the authenication mechanism here
+const token = req.session?.user?.token;
+if (!token) 
+    return res.status(401).send("Customer access denied");
+
+try {
+    jwt.verify(token, "secretKey");
+    next();
+} catch (err) {
+    res.status(400).send("Invalid token");
+}
 });
  
 const PORT =5000;
